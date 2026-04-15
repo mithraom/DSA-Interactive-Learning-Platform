@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Tree Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b, #020617);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  color: #e2e8f0;
+  padding: 40px 16px;
+}
+.container {
+  background: rgba(255,255,255,0.05);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.05);
+  text-align: center;
+  width: 95%;
+  max-width: 1100px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+h1 {
+  font-size: 42px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #e0e7ff;
+  text-shadow: 0 4px 20px rgba(99,102,241,0.4);
+}
+.subtitle { font-size: 15px; color: #94a3b8; margin-bottom: 28px; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+input[type="text"] {
+  padding: 13px 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
+  color: #e2e8f0;
+  font-size: 15px;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  width: 300px;
+  transition: 0.3s;
+}
+input[type="text"]::placeholder { color: #94a3b8; }
+input[type="text"]:focus { border-color: #6366f1; box-shadow: 0 0 15px rgba(99,102,241,0.5); }
+input[type="range"] { width: 130px; vertical-align: middle; accent-color: #6366f1; }
+
+button {
+  padding: 11px 22px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  font-weight: 600;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+}
+button:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
+
+.traversal-result {
+  display: none;
+  margin: 0 auto 16px;
+  background: rgba(99,102,241,0.15);
+  border: 1px solid rgba(99,102,241,0.4);
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 15px;
+  color: #c7d2fe;
+  font-weight: 500;
+  max-width: 760px;
+  word-break: break-word;
+}
+.traversal-result.show { display: block; }
+
+.status-strip {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.status-item { text-align: center; }
+.status-val { font-size: 20px; font-weight: 700; color: #a5b4fc; min-height: 28px; }
+.status-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+
+canvas {
+  margin-top: 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 0 20px rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  width: 100%;
+  height: 420px;
+  display: block;
+}
+
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 24px;
+  text-align: left;
+}
+.glass-panel {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 20px;
+}
+.glass-panel h3 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a5b4fc;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.code-lines { font-family: 'Courier New', monospace; font-size: 13px; color: #94a3b8; line-height: 2.2; }
+.info-row { font-size: 13px; color: #94a3b8; line-height: 2.2; }
+.info-row strong { color: #c7d2fe; }
+
+@media(max-width:700px) {
+  .bottom-grid { grid-template-columns: 1fr; }
+  h1 { font-size: 28px; }
+  input[type="text"] { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Binary Tree Visualizer</h1>
+  <p class="subtitle">Build, traverse, and explore binary tree data structures</p>
+
+  <div class="controls">
+    <input type="text" id="numbers" placeholder="e.g. 10, 5, 20, 3, 7, 15, 25">
+    <button onclick="buildTree()">&#9654; Build Tree</button>
+    <button onclick="resetTree()">&#10227; Reset</button>
+    <label style="color:#cbd5e1;font-size:14px;">
+      Speed&nbsp;
+      <input type="range" id="speed" min="150" max="1400" value="700" step="50"
+             oninput="document.getElementById('speed-val').textContent=this.value">
+    </label>
+    <span id="speed-val" style="color:#94a3b8;font-size:13px;min-width:32px;">700</span>
+  </div>
+
+  <div class="controls" style="margin-top:-6px;">
+    <button onclick="doTraversal('inorder')">Inorder</button>
+    <button onclick="doTraversal('preorder')">Preorder</button>
+    <button onclick="doTraversal('postorder')">Postorder</button>
+  </div>
+
+  <div class="traversal-result" id="trav-result"></div>
+
+  <div class="status-strip">
+    <div class="status-item">
+      <div class="status-val" id="st-inserting">&#8212;</div>
+      <div class="status-label">Inserting</div>
+    </div>
+    <div class="status-item">
+      <div class="status-val" id="st-nodes">0</div>
+      <div class="status-label">Nodes</div>
+    </div>
+    <div class="status-item">
+      <div class="status-val" id="st-height">0</div>
+      <div class="status-label">Height</div>
+    </div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <div class="bottom-grid">
+    <div class="glass-panel" style="border-left:3px solid #6366f1;">
+      <h3>Insertion Rule (Level-Order)</h3>
+      <div class="code-lines">
+        1. Create new node<br>
+        2. If tree empty &rarr; make root<br>
+        3. Use queue (BFS / level-order)<br>
+        4. Fill left child first<br>
+        5. Then fill right child
+      </div>
+    </div>
+    <div class="glass-panel">
+      <h3>Traversal Orders</h3>
+      <div class="info-row">
+        <div>&#128309; <strong>Inorder</strong> &nbsp;&mdash; Left &rarr; Root &rarr; Right</div>
+        <div>&#128994; <strong>Preorder</strong> &nbsp;&mdash; Root &rarr; Left &rarr; Right</div>
+        <div>&#128992; <strong>Postorder</strong> &mdash; Left &rarr; Right &rarr; Root</div>
+        <div style="margin-top:8px;color:#64748b;font-size:12px;">Highlighted nodes show traversal order</div>
+      </div>
+    </div>
+  </div>
+  <br><br>
+    <div class="back"><a href="/level4"><button>⬅ Back </button></a></div>
+
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+let root = null, nodeCount = 0, highlighted = [];
+
+class TNode {
+  constructor(v){ this.v=v; this.left=null; this.right=null; this.x=0; this.y=0; }
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function getDelay(){ return 1600 - parseInt(document.getElementById('speed').value); }
+
+/* ---------- tree helpers ---------- */
+function insertBT(val){
+  const node = new TNode(val);
+  if(!root){ root=node; return; }
+  const q=[root];
+  while(q.length){
+    const cur=q.shift();
+    if(!cur.left){ cur.left=node; return; } else q.push(cur.left);
+    if(!cur.right){ cur.right=node; return; } else q.push(cur.right);
+  }
+}
+
+function treeHeight(n){ return n ? 1+Math.max(treeHeight(n.left),treeHeight(n.right)) : 0; }
+
+function inorder(n,r)  { if(!n)return; inorder(n.left,r); r.push(n.v); inorder(n.right,r); }
+function preorder(n,r) { if(!n)return; r.push(n.v); preorder(n.left,r); preorder(n.right,r); }
+function postorder(n,r){ if(!n)return; postorder(n.left,r); postorder(n.right,r); r.push(n.v); }
+
+/* ---------- actions ---------- */
+async function buildTree(){
+  root=null; nodeCount=0; highlighted=[];
+  document.getElementById('trav-result').classList.remove('show');
+  const vals = document.getElementById('numbers').value
+    .split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n));
+  for(const v of vals){
+    document.getElementById('st-inserting').textContent=v;
+    insertBT(v);
+    nodeCount++;
+    document.getElementById('st-nodes').textContent=nodeCount;
+    document.getElementById('st-height').textContent=treeHeight(root);
+    drawTree();
+    await sleep(getDelay());
+  }
+  document.getElementById('st-inserting').textContent='✓ Done';
+}
+
+function resetTree(){
+  root=null; nodeCount=0; highlighted=[];
+  resizeCanvas();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  document.getElementById('st-inserting').textContent='—';
+  document.getElementById('st-nodes').textContent='0';
+  document.getElementById('st-height').textContent='0';
+  document.getElementById('trav-result').classList.remove('show');
+}
+
+async function doTraversal(type){
+  if(!root) return;
+  highlighted=[];
+  const res=[];
+  if(type==='inorder') inorder(root,res);
+  else if(type==='preorder') preorder(root,res);
+  else postorder(root,res);
+  const labels={inorder:'Inorder',preorder:'Preorder',postorder:'Postorder'};
+  const el=document.getElementById('trav-result');
+  el.textContent=labels[type]+': '+res.join(' → ');
+  el.classList.add('show');
+  for(const v of res){
+    highlighted=[v]; drawTree();
+    await sleep(Math.min(getDelay(),560));
+  }
+  highlighted=res; drawTree();
+}
+
+/* ---------- drawing ---------- */
+function resizeCanvas(){
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth;
+  const H=420;
+  canvas.width=W*dpr;
+  canvas.height=H*dpr;
+  canvas.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function drawTree(){
+  resizeCanvas();
+  ctx.clearRect(0,0,canvas.offsetWidth,420);
+  if(root) drawNode(root, canvas.offsetWidth/2, 46, canvas.offsetWidth/4.2);
+}
+
+function drawNode(node, x, y, offset){
+  if(!node) return;
+  node.x=x; node.y=y;
+  const levelGap=84;
+  const R=Math.max(18, Math.min(26, canvas.offsetWidth/42));
+
+  if(node.left){
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-offset, y+levelGap);
+    ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1.8; ctx.stroke();
+    drawNode(node.left, x-offset, y+levelGap, offset/1.85);
+  }
+  if(node.right){
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+offset, y+levelGap);
+    ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=1.8; ctx.stroke();
+    drawNode(node.right, x+offset, y+levelGap, offset/1.85);
+  }
+
+  const hl = highlighted.includes(node.v);
+  const g  = ctx.createLinearGradient(x-R, y-R, x+R, y+R);
+  if(hl){
+    g.addColorStop(0,'#10b981'); g.addColorStop(1,'#06b6d4');
+  } else {
+    g.addColorStop(0,'#6366f1'); g.addColorStop(1,'#818cf8');
+  }
+  ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2);
+  ctx.fillStyle=g; ctx.fill();
+  ctx.strokeStyle = hl ? '#6ee7b7' : '#c7d2fe';
+  ctx.lineWidth=2; ctx.stroke();
+
+  ctx.fillStyle='#ffffff';
+  ctx.font=`600 ${Math.max(11,R-7)}px Poppins, sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(node.v, x, y);
+}
+
+window.addEventListener('resize', ()=>{ if(root) drawTree(); else resizeCanvas(); });
+resizeCanvas();
+</script>
+</body>
+</html>

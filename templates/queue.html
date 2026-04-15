@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Queue Visualization</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b, #020617);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  color: #e2e8f0;
+  padding: 40px 16px;
+}
+.container {
+  background: rgba(255,255,255,0.05);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.05);
+  text-align: center;
+  width: 95%;
+  max-width: 900px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+h1 {
+  font-size: 42px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #e0e7ff;
+  text-shadow: 0 4px 20px rgba(99,102,241,0.4);
+}
+.subtitle {
+  font-size: 15px;
+  color: #94a3b8;
+  margin-bottom: 28px;
+  font-weight: 400;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+input[type="text"] {
+  padding: 13px 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
+  color: #e2e8f0;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  width: 200px;
+  transition: 0.3s;
+}
+input[type="text"]::placeholder { color: #94a3b8; }
+input[type="text"]:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 15px rgba(99,102,241,0.5);
+}
+button {
+  padding: 13px 26px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  font-weight: 600;
+  font-size: 15px;
+  font-family: 'Poppins', sans-serif;
+}
+button:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.5);
+}
+.section-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 14px;
+}
+/* Queue display */
+.queue-wrapper {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 30px 20px;
+  margin-bottom: 24px;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.queue-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.queue {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 60px;
+  align-items: center;
+}
+.block {
+  padding: 14px 22px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 16px;
+  box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+  animation: pop-in 0.25s ease;
+}
+.block.front {
+  background: linear-gradient(135deg, #10b981, #06b6d4);
+  box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+}
+@keyframes pop-in {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.empty-msg {
+  color: #334155;
+  font-size: 15px;
+  font-style: italic;
+}
+/* Two column layout */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  text-align: left;
+}
+/* Log */
+.glass-panel {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 20px;
+}
+.glass-panel h3 {
+  margin: 0 0 14px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #a5b4fc;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+#log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+#log li {
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #cbd5e1;
+  border-left: 3px solid #6366f1;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.03);
+}
+#log::-webkit-scrollbar { width: 4px; }
+#log::-webkit-scrollbar-track { background: transparent; }
+#log::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+/* Pseudocode */
+#pseudo-box {
+  border-left: 4px solid #6366f1;
+}
+.pseudo-line {
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  color: #94a3b8;
+  line-height: 1.8;
+}
+.pseudo-line.highlight {
+  background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(6,182,212,0.2));
+  color: #e0e7ff;
+  font-weight: 600;
+}
+/* Stats bar */
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 24px;
+}
+.stat {
+  text-align: center;
+}
+.stat-val {
+  font-size: 28px;
+  font-weight: 700;
+  color: #a5b4fc;
+}
+.stat-label {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.back { margin-top: 28px; }
+@media(max-width:640px) {
+  .bottom-grid { grid-template-columns: 1fr; }
+  h1 { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Queue Visualizer</h1>
+  <p class="subtitle">First In, First Out — FIFO Data Structure</p>
+
+  <div class="controls">
+    <input type="text" id="value" placeholder="Enter value…">
+    <button onclick="enqueue()">⬇ Enqueue</button>
+    <button onclick="dequeue()">⬆ Dequeue</button>
+    <button onclick="peek()">👁 Peek</button>
+    <button onclick="clearAll()">⟳ Clear</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="qsize">0</div><div class="stat-label">Size</div></div>
+    <div class="stat"><div class="stat-val" id="enq-count">0</div><div class="stat-label">Enqueued</div></div>
+    <div class="stat"><div class="stat-val" id="deq-count">0</div><div class="stat-label">Dequeued</div></div>
+  </div>
+
+  <div class="queue-wrapper">
+    <div class="queue-labels">
+      <span>← FRONT (Dequeue)</span>
+      <span>REAR (Enqueue) →</span>
+    </div>
+    <div class="queue" id="queue">
+      <span class="empty-msg">Queue is empty</span>
+    </div>
+  </div>
+
+  <div class="bottom-grid">
+    <div class="glass-panel">
+      <h3>Operations Log</h3>
+      <ul id="log"></ul>
+    </div>
+    <div class="glass-panel" id="pseudo-box">
+      <h3>Pseudocode</h3>
+      <div id="pseudo">
+        <div class="pseudo-line" id="l1">ENQUEUE(x):</div>
+        <div class="pseudo-line" id="l2">&nbsp;&nbsp;if full → Overflow</div>
+        <div class="pseudo-line" id="l3">&nbsp;&nbsp;rear = rear + 1</div>
+        <div class="pseudo-line" id="l4">&nbsp;&nbsp;queue[rear] = x</div>
+        <div class="pseudo-line" id="l5">&nbsp;</div>
+        <div class="pseudo-line" id="l6">DEQUEUE():</div>
+        <div class="pseudo-line" id="l7">&nbsp;&nbsp;if empty → Underflow</div>
+        <div class="pseudo-line" id="l8">&nbsp;&nbsp;val = queue[front]</div>
+        <div class="pseudo-line" id="l9">&nbsp;&nbsp;front = front + 1</div>
+        <div class="pseudo-line" id="l10">&nbsp;</div>
+        <div class="pseudo-line" id="l11">PEEK():</div>
+        <div class="pseudo-line" id="l12">&nbsp;&nbsp;return queue[front]</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="back">
+    <a href="/level3"><button>⬅ Back </button></a>
+  </div>
+</div>
+
+<script>
+let queue = [];
+let enqCount = 0, deqCount = 0;
+
+function hlLine(id) {
+  document.querySelectorAll('.pseudo-line').forEach(d => d.classList.remove('highlight'));
+  if (id) document.getElementById(id)?.classList.add('highlight');
+}
+
+function render() {
+  const container = document.getElementById('queue');
+  document.getElementById('qsize').innerText = queue.length;
+  if (queue.length === 0) {
+    container.innerHTML = '<span class="empty-msg">Queue is empty</span>';
+    return;
+  }
+  container.innerHTML = '';
+  queue.forEach((val, i) => {
+    const block = document.createElement('div');
+    block.className = 'block' + (i === 0 ? ' front' : '');
+    block.innerText = val;
+    container.appendChild(block);
+  });
+}
+
+function log(msg) {
+  const li = document.createElement('li');
+  li.innerText = msg;
+  const ul = document.getElementById('log');
+  ul.insertBefore(li, ul.firstChild);
+}
+
+function enqueue() {
+  const val = document.getElementById('value').value.trim();
+  if (!val) return;
+  hlLine('l3');
+  setTimeout(() => hlLine('l4'), 300);
+  queue.push(val);
+  enqCount++;
+  document.getElementById('enq-count').innerText = enqCount;
+  document.getElementById('value').value = '';
+  log(`Enqueued → ${val}`);
+  render();
+}
+
+function dequeue() {
+  if (queue.length === 0) { hlLine('l7'); log('Underflow! Queue is empty.'); return; }
+  hlLine('l8');
+  setTimeout(() => hlLine('l9'), 300);
+  const val = queue.shift();
+  deqCount++;
+  document.getElementById('deq-count').innerText = deqCount;
+  log(`Dequeued ← ${val}`);
+  render();
+}
+
+function peek() {
+  if (queue.length === 0) { log('Peek: Queue is empty'); return; }
+  hlLine('l12');
+  log(`Peek → Front is: ${queue[0]}`);
+  // flash front block
+  const front = document.querySelector('.block.front');
+  if (front) {
+    front.style.transform = 'scale(1.15)';
+    setTimeout(() => front.style.transform = '', 400);
+  }
+}
+
+function clearAll() {
+  queue = [];
+  hlLine('');
+  log('Queue cleared');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

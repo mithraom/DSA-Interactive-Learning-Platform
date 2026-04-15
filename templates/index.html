@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSA Interactive Learning Platform</title>
+
+<!-- SAME FONT SYSTEM -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+/* ===== GLOBAL DESIGN SYSTEM ===== */
+
+body{
+margin:0;
+font-family:'Poppins','Segoe UI',sans-serif;
+background: linear-gradient(135deg, #0f172a, #1e293b, #020617);
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+color:#e2e8f0;
+}
+
+/* ===== MAIN CONTAINER ===== */
+
+.container{
+background:rgba(255,255,255,0.05);
+padding:50px;
+border-radius:24px;
+box-shadow:
+0 25px 70px rgba(0,0,0,0.7),
+inset 0 0 30px rgba(255,255,255,0.05);
+text-align:center;
+width:90%;
+max-width:900px;
+backdrop-filter:blur(20px);
+border:1px solid rgba(255,255,255,0.08);
+}
+
+/* ===== TITLE ===== */
+
+h1{
+font-size:44px;
+font-weight:600;
+margin-bottom:10px;
+color:#e0e7ff;
+letter-spacing:1px;
+text-shadow:0 4px 20px rgba(99,102,241,0.4);
+}
+
+/* ===== SUBTEXT ===== */
+
+p{
+font-size:20px;
+color:#cbd5f5;
+margin-bottom:35px;
+}
+
+/* ===== GRID ===== */
+
+.grid{
+display:grid;
+grid-template-columns: repeat(2, 1fr);
+gap:22px;
+}
+
+/* ===== BUTTON LINKS ===== */
+
+a{
+text-decoration:none;
+}
+
+/* ===== BUTTON CARDS ===== */
+
+button{
+width:100%;
+padding:22px;
+font-size:18px;
+border:none;
+border-radius:18px;
+background:linear-gradient(135deg,#6366f1,#06b6d4);
+color:white;
+cursor:pointer;
+transition:0.35s;
+box-shadow:0 15px 40px rgba(0,0,0,0.5);
+font-weight:500;
+letter-spacing:0.5px;
+line-height:1.5;
+}
+
+/* Hover = premium lift effect */
+button:hover{
+transform:translateY(-6px) scale(1.04);
+box-shadow:0 25px 60px rgba(0,0,0,0.7);
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media(max-width:700px){
+.grid{
+grid-template-columns:1fr;
+}
+h1{
+font-size:34px;
+}
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>DSA Interactive Learning Platform</h1>
+<p>Learn Data Structures & Algorithms through interactive visualization</p>
+
+<div class="grid">
+
+<a href="/sorting">
+<button>Level 1<br>Sorting Algorithms</button>
+</a>
+
+<a href="/searching">
+<button>Level 2<br>Searching Algorithms</button>
+</a>
+
+<a href="/level3">
+<button>Level 3<br>Stack & Queue</button>
+</a>
+
+<a href="/level4">
+<button>Level 4<br>Tree Visualizations</button>
+</a>
+
+<a href="/graph">
+<button>Level 5<br>Graph Algorithms</button>
+</a>
+
+<a href="/hashing">
+<button>Level 6<br>Hashing</button>
+</a>
+
+<a href="/nqueens">
+<button>Level 7<br>Backtracking (N-Queens)</button>
+</a>
+
+<a href="/dp">
+<button>Level 8<br>Dynamic Programming</button>
+</a>
+
+<a href="/greedy">
+<button>Level 9<br>Greedy Algorithms</button>
+</a>
+
+<a href="/tsp">
+<button>Level 10<br>Travelling Salesman Problem </button>
+</a>
+
+</div>
+
+</div>
+
+</body>
+</html>

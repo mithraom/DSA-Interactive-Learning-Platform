@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travelling Salesman Problem Visualization</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body {
+  margin: 0; font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b, #020617);
+  display: flex; justify-content: center; align-items: flex-start;
+  min-height: 100vh; color: #e2e8f0; padding: 30px 0;
+}
+.container {
+  background: rgba(255,255,255,0.05); padding: 40px; border-radius: 24px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.05);
+  text-align: center; width: 95%; max-width: 1100px;
+  backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08);
+}
+h1 { font-size: 42px; font-weight: 600; margin-bottom: 20px; color: #e0e7ff; text-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+input[type="text"], input[type="number"], textarea {
+  padding: 13px 15px; margin: 6px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.08);
+  color: #e2e8f0; font-size: 16px; outline: none;
+  transition: 0.3s; font-family: 'Poppins', sans-serif;
+}
+input[type="number"] { width: 200px; }
+textarea { width: 320px; height: 110px; resize: none; }
+input:focus, textarea:focus { border-color: #6366f1; box-shadow: 0 0 15px rgba(99,102,241,0.5); }
+input::placeholder, textarea::placeholder { color: #94a3b8; }
+input[type="range"] { width: 160px; vertical-align: middle; }
+button {
+  padding: 13px 26px; margin: 6px; border: none; border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4); color: white;
+  cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  font-weight: 600; font-size: 16px; font-family: 'Poppins', sans-serif;
+}
+button:hover { transform: translateY(-4px) scale(1.05); box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+.controls { margin-bottom: 20px; }
+.controls label { font-size: 16px; color: #cbd5e1; }
+canvas {
+  margin-top: 20px; background: rgba(255,255,255,0.04); border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 0 20px rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08); display: block; margin-left: auto; margin-right: auto;
+}
+#pseudo {
+  width: 600px; margin: 25px auto 0; background: rgba(255,255,255,0.05);
+  padding: 20px 24px; border-radius: 18px; text-align: left; font-size: 16px;
+  backdrop-filter: blur(18px); box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08); border-left: 4px solid #6366f1;
+  line-height: 2.2; color: #cbd5e1;
+}
+#pseudo p { margin: 2px 0; padding: 3px 8px; border-radius: 6px; }
+.active { background: linear-gradient(135deg,#6366f1,#06b6d4); color: white !important; padding: 4px 10px; border-radius: 8px; }
+.status-text { font-size: 20px; font-weight: 600; color: #22d3ee; margin: 15px 0; min-height: 28px; }
+.back { margin-top: 28px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Travelling Salesman Problem Visualization</h1>
+  <div class="controls">
+    <input type="number" id="n" placeholder="Number of cities (e.g. 4)">
+    <br>
+    <textarea id="matrix" placeholder="Distance matrix...">0,10,15,20
+10,0,35,25
+15,35,0,30
+20,25,30,0</textarea>
+    <br>
+    <button onclick="start()">▶ Start</button>
+    <button onclick="resetAll()">⟳ Reset</button>
+    <br><br>
+    <label>Speed <input type="range" id="speed" min="200" max="1500" value="700"></label>
+  </div>
+
+  <div class="status-text" id="status"></div>
+  <canvas id="canvas" width="1000" height="460"></canvas>
+
+  <div id="pseudo">
+    <p id="p1">1. Start from city 0</p>
+    <p id="p2">2. Try each unvisited city</p>
+    <p id="p3">3. Add edge cost to total</p>
+    <p id="p4">4. If cost ≥ best → prune branch</p>
+    <p id="p5">5. Update best path found</p>
+  </div>
+
+  <div class="back">
+    <a href="/"><button>⬅ Back to Home</button></a>
+  </div>
+</div>
+
+<script>
+let ctx=document.getElementById("canvas").getContext("2d");
+let graph=[], n, pos={};
+let bestCost=Infinity, bestPath=[];
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function getSpeed(){return 1800-document.getElementById("speed").value;}
+
+function highlight(id){
+  document.querySelectorAll("#pseudo p").forEach(p=>p.classList.remove("active"));
+  const el=document.getElementById(id); if(el) el.classList.add("active");
+}
+
+function parse(){
+  n=parseInt(document.getElementById("n").value);
+  let rows=document.getElementById("matrix").value.trim().split("\n");
+  graph=rows.map(r=>r.split(",").map(Number));
+  if(graph.length!==n){ alert("Matrix size mismatch"); return false; }
+  return true;
+}
+
+function draw(path=[],color="#6366f1"){
+  ctx.clearRect(0,0,1000,460);
+  let cx=500,cy=225,r=180;
+  for(let i=0;i<n;i++){
+    let angle=2*Math.PI*i/n;
+    pos[i]={x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle)};
+  }
+  for(let i=0;i<n;i++){
+    for(let j=i+1;j<n;j++){
+      let p1=pos[i],p2=pos[j];
+      ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y);
+      ctx.strokeStyle="rgba(100,116,139,0.5)"; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle="#64748b"; ctx.font="14px Poppins"; ctx.textAlign="center";
+      ctx.fillText(graph[i][j],(p1.x+p2.x)/2,(p1.y+p2.y)/2);
+    }
+  }
+  for(let i=0;i<path.length-1;i++){
+    let p1=pos[path[i]],p2=pos[path[i+1]];
+    ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y);
+    ctx.strokeStyle=color; ctx.lineWidth=4; ctx.stroke();
+  }
+  for(let i=0;i<n;i++){
+    let p=pos[i];
+    let g=ctx.createLinearGradient(p.x-22,p.y-22,p.x+22,p.y+22);
+    g.addColorStop(0,"#6366f1"); g.addColorStop(1,"#06b6d4");
+    ctx.beginPath(); ctx.arc(p.x,p.y,24,0,Math.PI*2);
+    ctx.fillStyle=g; ctx.fill();
+    ctx.strokeStyle="#c7d2fe"; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle="#fff"; ctx.font="bold 16px Poppins";
+    ctx.textAlign="center"; ctx.fillText(i,p.x,p.y+6);
+  }
+}
+
+async function tsp(path,vis,cost){
+  highlight("p2"); draw(path);
+  document.getElementById("status").innerText=`Path: ${path.join("→")} | Cost: ${cost}`;
+  await sleep(getSpeed());
+  if(path.length===n){
+    let total=cost+graph[path[path.length-1]][0];
+    highlight("p3");
+    if(total<bestCost){
+      highlight("p5"); bestCost=total; bestPath=[...path];
+      document.getElementById("status").innerText=`✨ BEST: ${bestPath.join("→")}→0 | Cost: ${bestCost}`;
+    }
+    return;
+  }
+  if(cost>=bestCost){ highlight("p4"); draw(path,"#f87171"); await sleep(getSpeed()); return; }
+  for(let i=0;i<n;i++){
+    if(!vis[i]){
+      vis[i]=true; path.push(i);
+      await tsp(path,vis,cost+graph[path[path.length-2]][i]);
+      vis[i]=false; path.pop();
+    }
+  }
+}
+
+async function start(){
+  if(!parse()) return;
+  bestCost=Infinity; bestPath=[];
+  let vis=Array(n).fill(false);
+  highlight("p1"); vis[0]=true;
+  await tsp([0],vis,0);
+  draw(bestPath,"#22d3ee");
+  document.getElementById("status").innerText=`✅ FINAL: ${bestPath.join("→")}→0 | Cost: ${bestCost}`;
+}
+
+function resetAll(){
+  ctx.clearRect(0,0,1000,460);
+  document.getElementById("status").innerText="";
+  document.querySelectorAll("#pseudo p").forEach(p=>p.classList.remove("active"));
+}
+</script>
+</body>
+</html>

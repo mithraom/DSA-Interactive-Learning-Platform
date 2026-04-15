@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M-Way Tree Visualization</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b, #020617);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  color: #e2e8f0;
+  padding: 30px 0;
+}
+.container {
+  background: rgba(255,255,255,0.05);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.05);
+  text-align: center;
+  width: 95%;
+  max-width: 1100px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+h1 {
+  font-size: 42px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #e0e7ff;
+  text-shadow: 0 4px 20px rgba(99,102,241,0.4);
+}
+input[type="text"] {
+  padding: 13px 15px;
+  margin: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
+  color: #e2e8f0;
+  font-size: 16px;
+  outline: none;
+  width: 220px;
+  transition: 0.3s;
+  font-family: 'Poppins', sans-serif;
+}
+input[type="text"]:focus { border-color: #6366f1; box-shadow: 0 0 15px rgba(99,102,241,0.5); }
+input[type="text"]::placeholder { color: #94a3b8; }
+input[type="range"] { width: 160px; vertical-align: middle; }
+button {
+  padding: 13px 26px;
+  margin: 6px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  font-weight: 600;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+}
+button:hover { transform: translateY(-4px) scale(1.05); box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+.controls { margin-bottom: 20px; }
+.controls label { font-size: 16px; color: #cbd5e1; }
+canvas {
+  margin-top: 20px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 0 20px rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+#pseudo {
+  width: 600px;
+  margin: 25px auto 0;
+  background: rgba(255,255,255,0.05);
+  padding: 20px 24px;
+  border-radius: 18px;
+  text-align: left;
+  font-size: 16px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 4px solid #6366f1;
+  line-height: 2.2;
+  color: #cbd5e1;
+}
+#pseudo p { margin: 2px 0; padding: 3px 8px; border-radius: 6px; }
+.active { background: linear-gradient(135deg,#6366f1,#06b6d4); color: white !important; padding: 4px 10px; border-radius: 8px; }
+.status-text { font-size: 22px; font-weight: 600; color: #22d3ee; margin: 15px 0; min-height: 32px; }
+.back { margin-top: 28px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>M-Way Tree Visualization</h1>
+
+  <div class="controls">
+    <input type="text" id="numbers" placeholder="e.g. 10,20,5,30,15">
+    <input type="text" id="mval" placeholder="M value (e.g. 3)" style="width:160px;">
+    <button onclick="start()">▶ Start</button>
+    <br><br>
+    <label>Speed <input type="range" id="speed" min="300" max="1500" value="700"></label>
+  </div>
+
+  <div class="status-text" id="status"></div>
+
+  <canvas id="canvas" width="1000" height="480"></canvas>
+
+  <div id="pseudo">
+    <p id="p1">1. Insert into node</p>
+    <p id="p2">2. Sort keys in node</p>
+    <p id="p3">3. If overflow → split node</p>
+    <p id="p4">4. Promote middle key upward</p>
+  </div>
+
+  <div class="back">
+    <a href="/level4"><button>⬅ Back</button></a>
+  </div>
+</div>
+
+<script>
+class MNode {
+  constructor() { this.keys=[]; this.children=[]; this.leaf=true; }
+}
+
+let root=null, M=3;
+let ctx = document.getElementById("canvas").getContext("2d");
+
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
+function speed() { return 1800 - parseInt(document.getElementById("speed").value); }
+
+function highlight(id) {
+  document.querySelectorAll("#pseudo p").forEach(p=>p.classList.remove("active"));
+  const el=document.getElementById(id);
+  if(el) el.classList.add("active");
+}
+
+async function insert(val) {
+  highlight("p1"); await sleep(speed());
+  if (!root) { root=new MNode(); root.keys.push(val); return; }
+  await insertNode(root, val);
+}
+
+async function insertNode(node, val) {
+  if (node.leaf) {
+    node.keys.push(val);
+    highlight("p2"); node.keys.sort((a,b)=>a-b); await sleep(speed());
+    if (node.keys.length >= M) await split(node);
+  } else {
+    let i=0;
+    while (i<node.keys.length && val>node.keys[i]) i++;
+    await insertNode(node.children[i], val);
+  }
+}
+
+async function split(node) {
+  highlight("p3");
+  document.getElementById("status").innerText = "Overflow → Splitting";
+  await sleep(speed());
+  let mid=Math.floor(node.keys.length/2), midVal=node.keys[mid];
+  let left=new MNode(), right=new MNode();
+  left.keys=node.keys.slice(0,mid);
+  right.keys=node.keys.slice(mid+1);
+  highlight("p4");
+  document.getElementById("status").innerText = "Promoting " + midVal;
+  await sleep(speed());
+  if (node===root) {
+    root=new MNode(); root.keys=[midVal]; root.children=[left,right]; root.leaf=false;
+  } else {
+    node.keys=[midVal]; node.children=[left,right]; node.leaf=false;
+  }
+}
+
+async function start() {
+  root=null; ctx.clearRect(0,0,1000,480);
+  M=parseInt(document.getElementById("mval").value)||3;
+  if (M<3) M=3;
+  let arr=document.getElementById("numbers").value.split(",");
+  for (let v of arr) {
+    let num=parseInt(v.trim());
+    if (isNaN(num)) continue;
+    document.getElementById("status").innerText="Inserting "+num;
+    await insert(num); drawTree(); await sleep(speed());
+  }
+  document.getElementById("status").innerText="✅ Done";
+}
+
+function drawTree() {
+  ctx.clearRect(0,0,1000,480);
+  drawNode(root,500,55,260);
+}
+
+function drawNode(node,x,y,offset) {
+  if (!node) return;
+  let w=node.keys.length*70;
+  let g=ctx.createLinearGradient(x-w/2,y,x+w/2,y+60);
+  g.addColorStop(0,"#6366f1"); g.addColorStop(1,"#06b6d4");
+  ctx.beginPath();
+  ctx.roundRect(x-w/2,y-28,w,56,12);
+  ctx.fillStyle=g; ctx.fill();
+  ctx.strokeStyle="#c7d2fe"; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle="#fff"; ctx.font="bold 18px Poppins"; ctx.textAlign="center";
+  for (let i=0;i<node.keys.length;i++) {
+    ctx.fillText(node.keys[i], x-w/2+35+i*70, y+7);
+  }
+  for (let i=0;i<node.children.length;i++) {
+    let childX=x - offset*(node.children.length-1)/2 + i*offset;
+    let childY=y+100;
+    ctx.beginPath(); ctx.moveTo(x,y+28); ctx.lineTo(childX,childY-28);
+    ctx.strokeStyle="#64748b"; ctx.lineWidth=2; ctx.stroke();
+    drawNode(node.children[i],childX,childY,offset/2);
+  }
+}
+</script>
+</body>
+</html>

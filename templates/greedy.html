@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greedy - Fractional Knapsack</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b, #020617);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  color: #e2e8f0;
+  padding: 30px 0;
+}
+.container {
+  background: rgba(255,255,255,0.05);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.05);
+  text-align: center;
+  width: 95%;
+  max-width: 1100px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+h1 {
+  font-size: 42px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #e0e7ff;
+  text-shadow: 0 4px 20px rgba(99,102,241,0.4);
+}
+input[type="text"], input[type="number"] {
+  padding: 13px 15px;
+  margin: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
+  color: #e2e8f0;
+  font-size: 16px;
+  outline: none;
+  width: 160px;
+  transition: 0.3s;
+  font-family: 'Poppins', sans-serif;
+}
+input[type="text"]:focus, input[type="number"]:focus { border-color: #6366f1; box-shadow: 0 0 15px rgba(99,102,241,0.5); }
+input[type="text"]::placeholder, input[type="number"]::placeholder { color: #94a3b8; }
+input[type="range"] { width: 160px; vertical-align: middle; }
+button {
+  padding: 13px 26px;
+  margin: 6px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  font-weight: 600;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+}
+button:hover { transform: translateY(-4px) scale(1.05); box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+.controls { margin-bottom: 20px; }
+.controls label { font-size: 16px; color: #cbd5e1; }
+.divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+  margin: 20px 0;
+}
+#items { margin: 20px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.item {
+  padding: 12px 18px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(99,102,241,0.4);
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e0e7ff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  transition: 0.3s;
+}
+.item.selected {
+  background: linear-gradient(135deg, rgba(99,102,241,0.4), rgba(6,182,212,0.3));
+  border-color: #06b6d4;
+  box-shadow: 0 8px 25px rgba(6,182,212,0.3);
+}
+#pseudo {
+  width: 600px;
+  margin: 25px auto 0;
+  background: rgba(255,255,255,0.05);
+  padding: 20px 24px;
+  border-radius: 18px;
+  text-align: left;
+  font-size: 16px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 4px solid #6366f1;
+  line-height: 2.2;
+  color: #cbd5e1;
+}
+#pseudo p { margin: 2px 0; padding: 3px 8px; border-radius: 6px; }
+.active { background: linear-gradient(135deg,#6366f1,#06b6d4); color: white !important; padding: 4px 10px; border-radius: 8px; }
+.status-text {
+  font-size: 22px;
+  font-weight: 600;
+  color: #22d3ee;
+  margin: 15px 0;
+  min-height: 32px;
+}
+.back { margin-top: 28px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Greedy — Fractional Knapsack</h1>
+
+  <div class="controls">
+    <input type="number" id="value" placeholder="Value">
+    <input type="number" id="weight" placeholder="Weight">
+    <button onclick="addItem()">➕ Add Item</button>
+    <div class="divider"></div>
+    <input type="number" id="capacity" placeholder="Capacity">
+    <button onclick="solve()">▶ Solve</button>
+    <button onclick="resetAll()">⟳ Reset</button>
+    <br><br>
+    <label>Speed <input type="range" id="speed" min="200" max="1500" value="700"></label>
+  </div>
+
+  <div id="items"></div>
+  <div class="status-text" id="status"></div>
+
+  <div id="pseudo">
+    <p id="p1">1. Compute value / weight ratio</p>
+    <p id="p2">2. Sort items by ratio (descending)</p>
+    <p id="p3">3. Pick full item if capacity allows</p>
+    <p id="p4">4. Else take fractional amount</p>
+    <p id="p5">5. Stop when capacity is filled</p>
+  </div>
+
+  <div class="back">
+    <a href="/"><button>⬅ Back to Home</button></a>
+  </div>
+</div>
+
+<script>
+let items = [];
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function getSpeed() { return 1600 - parseInt(document.getElementById("speed").value); }
+
+function highlight(id) {
+  document.querySelectorAll("#pseudo p").forEach(p => p.classList.remove("active"));
+  const el = document.getElementById(id);
+  if (el) el.classList.add("active");
+}
+
+function addItem() {
+  let v = parseInt(document.getElementById("value").value);
+  let w = parseInt(document.getElementById("weight").value);
+  if (!v || !w) return;
+  items.push({ value: v, weight: w });
+  render();
+  document.getElementById("value").value = "";
+  document.getElementById("weight").value = "";
+}
+
+function render(selected=[]) {
+  let container = document.getElementById("items");
+  container.innerHTML = "";
+  items.forEach((it, i) => {
+    let box = document.createElement("div");
+    box.className = "item" + (selected.includes(i) ? " selected" : "");
+    box.innerText = `V: ${it.value}  W: ${it.weight}${it.ratio ? "  R: "+it.ratio.toFixed(2) : ""}`;
+    container.appendChild(box);
+  });
+}
+
+async function solve() {
+  let capacity = parseInt(document.getElementById("capacity").value);
+  if (!capacity) return;
+
+  highlight("p1");
+  await sleep(getSpeed());
+  items.forEach(i => i.ratio = i.value / i.weight);
+
+  highlight("p2");
+  items.sort((a, b) => b.ratio - a.ratio);
+  render(); await sleep(getSpeed());
+
+  let total = 0, sel = [];
+  for (let idx=0; idx<items.length; idx++) {
+    let item = items[idx];
+    if (capacity >= item.weight) {
+      highlight("p3");
+      capacity -= item.weight;
+      total += item.value;
+      sel.push(idx);
+      document.getElementById("status").innerText = `Taking full item (V:${item.value}, W:${item.weight})`;
+    } else {
+      highlight("p4");
+      let fraction = capacity / item.weight;
+      total += item.value * fraction;
+      sel.push(idx);
+      document.getElementById("status").innerText = `Taking ${(fraction*100).toFixed(0)}% of item (V:${item.value})`;
+      capacity = 0;
+      render(sel); await sleep(getSpeed());
+      break;
+    }
+    render(sel); await sleep(getSpeed());
+    if (capacity === 0) { highlight("p5"); break; }
+  }
+  document.getElementById("status").innerText = `✅ Maximum Value = ${total.toFixed(2)}`;
+}
+
+function resetAll() {
+  items = [];
+  document.getElementById("items").innerHTML = "";
+  document.getElementById("status").innerText = "";
+  document.querySelectorAll("#pseudo p").forEach(p => p.classList.remove("active"));
+}
+</script>
+</body>
+</html>

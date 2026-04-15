@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N-Queens Visualization</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b, #020617);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  color: #e2e8f0;
+  padding: 30px 0;
+}
+.container {
+  background: rgba(255,255,255,0.05);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.05);
+  text-align: center;
+  width: 95%;
+  max-width: 1100px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+h1 { font-size: 42px; font-weight: 600; margin-bottom: 20px; color: #e0e7ff; text-shadow: 0 4px 20px rgba(99,102,241,0.4); }
+input[type="text"] {
+  padding: 13px 15px; margin: 6px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.08);
+  color: #e2e8f0; font-size: 16px; outline: none; width: 220px;
+  transition: 0.3s; font-family: 'Poppins', sans-serif;
+}
+input[type="text"]:focus { border-color: #6366f1; box-shadow: 0 0 15px rgba(99,102,241,0.5); }
+input[type="text"]::placeholder { color: #94a3b8; }
+input[type="range"] { width: 160px; vertical-align: middle; }
+button {
+  padding: 13px 26px; margin: 6px; border: none; border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4); color: white;
+  cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  font-weight: 600; font-size: 16px; font-family: 'Poppins', sans-serif;
+}
+button:hover { transform: translateY(-4px) scale(1.05); box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+.controls { margin-bottom: 20px; }
+.controls label { font-size: 16px; color: #cbd5e1; }
+#board-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+#board {
+  display: inline-grid;
+  padding: 16px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 0 20px rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  gap: 4px;
+}
+.cell {
+  width: 58px; height: 58px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; border-radius: 10px; transition: background 0.2s;
+}
+.white { background: rgba(255,255,255,0.07); }
+.black { background: rgba(0,0,0,0.28); }
+.queen { color: #a78bfa; text-shadow: 0 0 12px rgba(167,139,250,0.8); font-size: 30px; }
+#pseudo {
+  width: 600px; margin: 25px auto 0; background: rgba(255,255,255,0.05);
+  padding: 20px 24px; border-radius: 18px; text-align: left; font-size: 16px;
+  backdrop-filter: blur(18px); box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08); border-left: 4px solid #6366f1;
+  line-height: 2.2; color: #cbd5e1;
+}
+#pseudo p { margin: 2px 0; padding: 3px 8px; border-radius: 6px; }
+.active { background: linear-gradient(135deg,#6366f1,#06b6d4); color: white !important; padding: 4px 10px; border-radius: 8px; }
+.back { margin-top: 28px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>N-Queens Visualization</h1>
+  <div class="controls">
+    <input type="text" id="n" placeholder="Enter N (e.g. 6)">
+    <button onclick="start()">▶ Start</button>
+    <button onclick="resetBoard()">⟳ Reset</button>
+    <br><br>
+    <label>Speed <input type="range" id="speed" min="200" max="1500" value="700"></label>
+  </div>
+
+  <div id="board-wrap"><div id="board"></div></div>
+
+  <div id="pseudo">
+    <p id="p1">1. Place queen in current row</p>
+    <p id="p2">2. Check if position is safe</p>
+    <p id="p3">3. If safe → recurse to next row</p>
+    <p id="p4">4. Else try next column</p>
+    <p id="p5">5. No column works → backtrack</p>
+  </div>
+
+  <div class="back">
+    <a href="/"><button>⬅ Back to Home</button></a>
+  </div>
+</div>
+
+<script>
+let N, board=[];
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function getSpeed(){return 1800-parseInt(document.getElementById("speed").value);}
+function highlight(id){
+  document.querySelectorAll("#pseudo p").forEach(p=>p.classList.remove("active"));
+  const el=document.getElementById(id); if(el) el.classList.add("active");
+}
+
+function createBoard(){
+  let container=document.getElementById("board");
+  container.innerHTML="";
+  container.style.gridTemplateColumns=`repeat(${N},58px)`;
+  for(let i=0;i<N;i++){
+    for(let j=0;j<N;j++){
+      let cell=document.createElement("div");
+      cell.id=`cell-${i}-${j}`;
+      cell.className="cell "+((i+j)%2===0?"white":"black");
+      container.appendChild(cell);
+    }
+  }
+}
+
+function render(){
+  for(let i=0;i<N;i++){
+    for(let j=0;j<N;j++){
+      let cell=document.getElementById(`cell-${i}-${j}`);
+      if(board[i][j]){ cell.innerHTML="♛"; cell.classList.add("queen"); }
+      else { cell.innerHTML=""; cell.classList.remove("queen"); }
+    }
+  }
+}
+
+function isSafe(row,col){
+  for(let i=0;i<row;i++) if(board[i][col]) return false;
+  for(let i=row-1,j=col-1;i>=0&&j>=0;i--,j--) if(board[i][j]) return false;
+  for(let i=row-1,j=col+1;i>=0&&j<N;i--,j++) if(board[i][j]) return false;
+  return true;
+}
+
+async function solve(row){
+  if(row===N) return true;
+  for(let col=0;col<N;col++){
+    highlight("p1"); await sleep(getSpeed());
+    if(isSafe(row,col)){
+      highlight("p2"); board[row][col]=1; render(); await sleep(getSpeed());
+      highlight("p3");
+      if(await solve(row+1)) return true;
+      highlight("p5"); board[row][col]=0; render(); await sleep(getSpeed());
+    } else { highlight("p4"); await sleep(getSpeed()/2); }
+  }
+  return false;
+}
+
+async function start(){
+  N=parseInt(document.getElementById("n").value);
+  if(!N||N<4){ alert("Enter N ≥ 4"); return; }
+  board=Array.from({length:N},()=>Array(N).fill(0));
+  createBoard();
+  await solve(0);
+}
+
+function resetBoard(){
+  document.getElementById("board").innerHTML="";
+  document.querySelectorAll("#pseudo p").forEach(p=>p.classList.remove("active"));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Search Tree Visualization</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b, #020617);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  color: #e2e8f0;
+  padding: 30px 0;
+}
+.container {
+  background: rgba(255,255,255,0.05);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.05);
+  text-align: center;
+  width: 95%;
+  max-width: 1100px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+h1 {
+  font-size: 42px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #e0e7ff;
+  text-shadow: 0 4px 20px rgba(99,102,241,0.4);
+}
+.subtitle {
+  font-size: 17px;
+  color: #cbd5e1;
+  margin-bottom: 4px;
+}
+.rule {
+  font-size: 20px;
+  font-weight: 500;
+  color: #22d3ee;
+  margin-bottom: 20px;
+}
+input[type="text"] {
+  padding: 13px 15px;
+  margin: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
+  color: #e2e8f0;
+  font-size: 16px;
+  outline: none;
+  width: 340px;
+  transition: 0.3s;
+  font-family: 'Poppins', sans-serif;
+}
+input[type="text"]:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 15px rgba(99,102,241,0.5);
+}
+input[type="text"]::placeholder { color: #94a3b8; }
+input[type="range"] { width: 160px; vertical-align: middle; }
+button {
+  padding: 13px 26px;
+  margin: 6px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  font-weight: 600;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+}
+button:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+}
+.controls { margin-bottom: 20px; }
+.controls label { font-size: 16px; color: #cbd5e1; }
+canvas {
+  margin-top: 25px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 0 20px rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.codebox {
+  width: 600px;
+  margin: 25px auto 0;
+  background: rgba(255,255,255,0.05);
+  padding: 20px 24px;
+  text-align: left;
+  border-radius: 18px;
+  font-size: 16px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 4px solid #6366f1;
+  line-height: 2;
+  color: #cbd5e1;
+}
+.codebox b { color: #e0e7ff; }
+.back { margin-top: 28px; }
+@media(max-width:700px) {
+  h1 { font-size: 28px; }
+  input[type="text"] { width: 90%; }
+  .codebox { width: 90%; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Binary Search Tree</h1>
+  <p class="subtitle">BST Insertion maintains the rule:</p>
+  <p class="rule">Left Child &lt; Root &lt; Right Child</p>
+
+  <div class="controls">
+    <input type="text" id="numbers" placeholder="e.g. 50,30,70,20,40,60,80">
+    <br>
+    <label>Speed <input type="range" id="speed" min="200" max="1500" value="700"></label>
+    <br><br>
+    <button onclick="buildTree()">▶ Insert Nodes</button>
+    <button onclick="inorder()">↔ Inorder</button>
+    <button onclick="preorder()">↕ Preorder</button>
+    <button onclick="postorder()">↩ Postorder</button>
+  </div>
+
+  <canvas id="treeCanvas" width="900" height="450"></canvas>
+
+  <div class="codebox">
+    <b>BST Insertion</b><br><br>
+    1. Start at root<br>
+    2. If value &lt; node → go left<br>
+    3. If value &gt; node → go right<br>
+    4. Repeat until empty position<br>
+    5. Insert node
+  </div>
+  <br><br>
+    <div class="back"><a href="/level4"><button>⬅ Back </button></a></div>
+</div>
+
+<script>
+let canvas = document.getElementById("treeCanvas");
+let ctx = canvas.getContext("2d");
+
+class Node {
+  constructor(value) { this.value = value; this.left = null; this.right = null; }
+}
+
+let root = null;
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function speed() { return 1800 - parseInt(document.getElementById("speed").value); }
+
+async function buildTree() {
+  let arr = document.getElementById("numbers").value.split(",").map(Number).filter(n => !isNaN(n));
+  root = null;
+  for (let n of arr) { await insert(n); drawTree(); await sleep(speed()); }
+}
+
+async function insert(value) {
+  let node = new Node(value);
+  if (!root) { root = node; return; }
+  let current = root;
+  while (true) {
+    if (value < current.value) {
+      if (!current.left) { current.left = node; return; }
+      current = current.left;
+    } else {
+      if (!current.right) { current.right = node; return; }
+      current = current.right;
+    }
+  }
+}
+
+function drawTree() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawNode(root, 450, 40, 220);
+}
+
+function drawNode(node, x, y, offset) {
+  if (!node) return;
+  let g = ctx.createLinearGradient(x-25, y-25, x+25, y+25);
+  g.addColorStop(0, "#6366f1"); g.addColorStop(1, "#06b6d4");
+  ctx.beginPath(); ctx.arc(x, y, 28, 0, Math.PI*2);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.strokeStyle = "#c7d2fe"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = "#fff"; ctx.font = "bold 18px Poppins";
+  ctx.textAlign = "center"; ctx.fillText(node.value, x, y+6);
+  if (node.left) {
+    ctx.beginPath(); ctx.moveTo(x, y+28); ctx.lineTo(x-offset, y+52);
+    ctx.strokeStyle = "#64748b"; ctx.lineWidth = 2; ctx.stroke();
+    drawNode(node.left, x-offset, y+80, offset/2);
+  }
+  if (node.right) {
+    ctx.beginPath(); ctx.moveTo(x, y+28); ctx.lineTo(x+offset, y+52);
+    ctx.strokeStyle = "#64748b"; ctx.lineWidth = 2; ctx.stroke();
+    drawNode(node.right, x+offset, y+80, offset/2);
+  }
+}
+
+function inorder() { let r=[]; inTrav(root,r); alert("Inorder: "+r.join(", ")); }
+function inTrav(n,r){ if(!n)return; inTrav(n.left,r); r.push(n.value); inTrav(n.right,r); }
+function preorder() { let r=[]; preTrav(root,r); alert("Preorder: "+r.join(", ")); }
+function preTrav(n,r){ if(!n)return; r.push(n.value); preTrav(n.left,r); preTrav(n.right,r); }
+function postorder() { let r=[]; postTrav(root,r); alert("Postorder: "+r.join(", ")); }
+function postTrav(n,r){ if(!n)return; postTrav(n.left,r); postTrav(n.right,r); r.push(n.value); }
+</script>
+</body>
+</html>
