@@ -1,96 +1,116 @@
-from flask import Flask, render_template
+import streamlit as st
+import os
 
-app = Flask(__name__)
+# -----------------------------
+# PAGE CONFIG
+# -----------------------------
+st.set_page_config(
+    page_title="DSA Learning Platform",
+    layout="wide"
+)
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+# -----------------------------
+# FUNCTION TO LOAD HTML FILES
+# -----------------------------
+def load_html(file_name):
+    try:
+        file_path = os.path.join("templates", file_name)
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except:
+        return f"<h3>{file_name} not found</h3>"
 
-@app.route("/sorting")
-def sorting():
-    return render_template("sorting.html")
+# -----------------------------
+# SIDEBAR NAVIGATION (REPLACES ROUTES)
+# -----------------------------
+st.sidebar.title("📚 DSA Topics")
 
-@app.route("/searching")
-def searching():
-    return render_template("searching.html")
+page = st.sidebar.selectbox("Navigate", [
+    "Home",
+    "Sorting",
+    "Searching",
+    "Stack",
+    "Queue",
+    "Level 3",
+    "Level 4",
+    "Binary Tree",
+    "BST",
+    "AVL Tree",
+    "Red Black Tree",
+    "Min Heap",
+    "Max Heap",
+    "M-Way Tree",
+    "B-Tree",
+    "Graph",
+    "Hashing",
+    "N-Queens",
+    "Dynamic Programming",
+    "Greedy",
+    "TSP"
+])
 
-# STACK PAGE
-@app.route("/stack")
-def stack():
-    return render_template("stack.html")
+# -----------------------------
+# PAGE ROUTING LOGIC
+# -----------------------------
+if page == "Home":
+    st.markdown(load_html("index.html"), unsafe_allow_html=True)
 
-# QUEUE PAGE
-@app.route("/queue")
-def queue():
-    return render_template("queue.html")
+elif page == "Sorting":
+    st.markdown(load_html("sorting.html"), unsafe_allow_html=True)
 
-# LEVEL 3 PAGE
-@app.route("/level3")
-def level3():
-    return render_template("level3.html")
+elif page == "Searching":
+    st.markdown(load_html("searching.html"), unsafe_allow_html=True)
 
-# LEVEL 4 PAGE
-@app.route("/level4")
-def level4():
-    return render_template("level4.html")
+elif page == "Stack":
+    st.markdown(load_html("stack.html"), unsafe_allow_html=True)
 
-# TREES
-@app.route("/binary_tree")
-def binary_tree():
-    return render_template("binary_tree.html")
+elif page == "Queue":
+    st.markdown(load_html("queue.html"), unsafe_allow_html=True)
 
-@app.route("/bst")
-def bst():
-    return render_template("bst.html")
+elif page == "Level 3":
+    st.markdown(load_html("level3.html"), unsafe_allow_html=True)
 
-@app.route("/avl")
-def avl():
-    return render_template("avl.html")
+elif page == "Level 4":
+    st.markdown(load_html("level4.html"), unsafe_allow_html=True)
 
-@app.route("/red_black")
-def red_black():
-    return render_template("red_black.html")
+elif page == "Binary Tree":
+    st.markdown(load_html("binary_tree.html"), unsafe_allow_html=True)
 
-@app.route("/min_heap")
-def min_heap():
-    return render_template("min_heap.html")
+elif page == "BST":
+    st.markdown(load_html("bst.html"), unsafe_allow_html=True)
 
-@app.route("/max_heap")
-def max_heap():
-    return render_template("max_heap.html")
+elif page == "AVL Tree":
+    st.markdown(load_html("avl.html"), unsafe_allow_html=True)
 
-@app.route("/m_way")
-def m_way():
-    return render_template("m_way.html")
+elif page == "Red Black Tree":
+    st.markdown(load_html("red_black.html"), unsafe_allow_html=True)
 
-@app.route('/b_tree')
-def b_tree():
-    return render_template('b_tree.html')
+elif page == "Min Heap":
+    st.markdown(load_html("min_heap.html"), unsafe_allow_html=True)
 
-@app.route("/graph")
-def graph():
-    return render_template("graph.html")
+elif page == "Max Heap":
+    st.markdown(load_html("max_heap.html"), unsafe_allow_html=True)
 
-@app.route("/hashing")
-def hashing():
-    return render_template("hashing.html")
+elif page == "M-Way Tree":
+    st.markdown(load_html("m_way.html"), unsafe_allow_html=True)
 
-@app.route("/nqueens")
-def nqueens():
-    return render_template("nqueens.html")
+elif page == "B-Tree":
+    st.markdown(load_html("b_tree.html"), unsafe_allow_html=True)
 
-@app.route("/dp")
-def dp():
-    return render_template("dp.html")
+elif page == "Graph":
+    st.markdown(load_html("graph.html"), unsafe_allow_html=True)
 
-@app.route("/greedy")
-def greedy():
-    return render_template("greedy.html")
+elif page == "Hashing":
+    st.markdown(load_html("hashing.html"), unsafe_allow_html=True)
 
-@app.route("/tsp")
-def tsp():
-    return render_template("tsp.html")
+elif page == "N-Queens":
+    st.markdown(load_html("nqueens.html"), unsafe_allow_html=True)
 
+elif page == "Dynamic Programming":
+    st.markdown(load_html("dp.html"), unsafe_allow_html=True)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+elif page == "Greedy":
+    st.markdown(load_html("greedy.html"), unsafe_allow_html=True)
+
+elif page == "TSP":
+    st.markdown(load_html("tsp.html"), unsafe_allow_html=True)
