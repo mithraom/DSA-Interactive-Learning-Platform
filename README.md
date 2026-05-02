@@ -17,8 +17,8 @@ Traditional DSA learning relies on static diagrams and textbook explanations, ma
  
 | Technique | Algorithms |
 |---|---|
-| Divide and Conquer | Binary Search, Merge Sort, Quick Sort |
-| Greedy Method | Fractional Knapsack, Prim's, Kruskal's |
+| Divide and Conquer | Binary Search,Linear Search, Merge Sort, Quick Sort, Bubble Sort, Selection Sort, Insertion Sort |
+| Greedy Method | Fractional Knapsack |
 | Dynamic Programming | Multistage Graph |
 | Backtracking | N-Queens Problem (Eight Queens) |
 | Branch and Bound | Travelling Salesman Problem (TSP) |
